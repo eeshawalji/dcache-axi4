@@ -24,6 +24,7 @@ async def test_reset(dut):
     await env.drain()
     assert env.sb.n_resp == 0, "response seen with no requests issued"
     env.sb.check()
+    env.wb.check()
 
 
 @cocotb.test()
@@ -39,6 +40,7 @@ async def test_read_miss_then_hit(dut):
     await env.drain()
     assert env.sb.n_resp == 2 + cfg.WORDS_PER_LINE
     env.sb.check()
+    env.wb.check()
 
 
 @cocotb.test()
@@ -55,6 +57,7 @@ async def test_write_then_read(dut):
     env.read(a + 8)
     await env.drain()
     env.sb.check()
+    env.wb.check()
 
 
 @cocotb.test()
@@ -71,6 +74,7 @@ async def test_conflict_evict(dut):
     await env.drain()
     assert env.sb.n_resp == 8
     env.sb.check()
+    env.wb.check()
 
 
 @cocotb.test()
@@ -85,6 +89,7 @@ async def test_streaming(dut):
     await env.drain()
     assert env.sb.n_resp == n
     env.sb.check()
+    env.wb.check()
 
 
 @cocotb.test()
@@ -99,3 +104,4 @@ async def test_write_then_read_same_set(dut):
     env.read(a)          # miss, refills from memory — must see 0x12345678
     await env.drain()
     env.sb.check()
+    env.wb.check()

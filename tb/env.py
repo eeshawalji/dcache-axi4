@@ -8,6 +8,9 @@ from monitor import CpuMonitor, CpuReqMonitor
 from scoreboard import Scoreboard
 from memory import build_image, preload
 from transaction import Request
+from ref_model import RefCache
+from whitebox import WhiteboxChecker
+from coverage import Coverage
 
 class Env:
     def __init__(self, dut, image_seed=0):
@@ -33,12 +36,18 @@ class Env:
 
         await preload(d, self.image)
 
-        self.sb       = Scoreboard(d._log, init_mem=self.image)
+        self.sb = Scoreboard(d._log, init_mem=self.image)
         self.driver   = CpuDriver(d, d.clk)
         self.req_mon  = CpuReqMonitor(d, d.clk)
         self.resp_mon = CpuMonitor(d, d.clk)
         self.req_mon.subscribe(self.sb.on_request)
         self.resp_mon.subscribe(self.sb.on_response)
+        self.model = RefCache(cfg.CAPACITY_BYTES, cfg.LINE_BYTES, cfg.WAYS, 
+                        write_policy="through", allocate="no-allocate")
+        self.wb = WhiteboxChecker(d, d.clk, self.model, d._log)
+        self.cov = Coverage(self.model)
+        self.wb.coverage = self.cov
+        self.req_mon.subscribe(self.wb.on_request)
 
     def read(self, addr, gap=0):
         self.driver.append(Request(we=False, addr=addr, gap=gap))

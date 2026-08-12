@@ -224,6 +224,43 @@ module dcache #(
   assign s0s1_conflict  = cmd_store && (s0_index == s1_index) && (s0_tag == s1_tag);
   assign req_ready      = s1_can_advance && !s0s1_conflict;
 
-  //debug signals go here
+  // ---- verification debug taps ----
+  // Not synthesisable intent; observed by cocotb via --public-flat-rw.
+   /* verilator lint_off UNUSEDSIGNAL */
+  localparam int WAY_IDX_W = (WAYS > 1) ? $clog2(WAYS) : 1;
+
+  // High for exactly one cycle: the first stage-1 cycle of a new request,
+  // which is the cycle 'hit' reflects the state of the cache before any fill.
+  logic dbg_first;
+  always_ff @(posedge clk) begin
+    if (!rst_n)              dbg_first <= 1'b0;
+    else if (s1_can_advance) dbg_first <= s0_accept;
+    else                     dbg_first <= 1'b0;
+  end
+
+  logic [WAY_IDX_W-1:0] dbg_hit_way;
+  always_comb begin
+    dbg_hit_way = '0;
+    for (int w = 0; w < WAYS; w++)
+      if (way_hit[w]) dbg_hit_way = WAY_IDX_W'(w);
+  end
+
+  logic                 dbg_acc_valid;   // one pulse per accepted request
+  logic                 dbg_acc_hit;
+  logic                 dbg_acc_we;
+  logic [ADDR_W-1:0]    dbg_acc_addr;
+  logic [WAY_IDX_W-1:0] dbg_acc_way;
+
+  assign dbg_acc_valid = dbg_first;
+  assign dbg_acc_hit   = hit;
+  assign dbg_acc_we    = s1_we;
+  assign dbg_acc_addr  = {s1_tag, s1_index, s1_offset};
+  assign dbg_acc_way   = dbg_hit_way;
+
+  // Event pulses, counted rather than matched per-access.
+  logic dbg_ev_fill, dbg_ev_memwr;
+  assign dbg_ev_fill  = cmd_fill;
+  assign dbg_ev_memwr = mem_req_valid && mem_req_ready && mem_req_we;
+  /* verilator lint_on UNUSEDSIGNAL */
 
 endmodule
