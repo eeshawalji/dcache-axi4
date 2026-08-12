@@ -1,0 +1,44 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Wed Aug 12 17:33:09 2026
+[*]
+[dumpfile] "/home/eeshawalji/dcache/tb/dump.vcd"
+[dumpfile_mtime] "Mon Aug 10 23:05:20 2026"
+[dumpfile_size] 71956
+[savefile] "/home/eeshawalji/dcache/tb/dcache.gtkw"
+[timestart] 122300
+[size] 1823 945
+[pos] 32833 32768
+*-16.000000 1600 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_top.
+[sst_width] 214
+[signals_width] 158
+[sst_expanded] 1
+[sst_vpaned_height] 273
+@28
+clk
+rst_n
+tb_top.req_valid
+tb_top.req_ready
+tb_top.resp_valid
+@22
+tb_top.resp_rdata[31:0]
+@28
+tb_top.u_dcache.state[2:0]
+tb_top.u_dcache.s1_valid
+@22
+tb_top.u_dcache.s1_index[7:0]
+tb_top.u_dcache.s1_tag[18:0]
+@28
+tb_top.u_dcache.hit
+tb_top.u_dcache.cmd_fill
+tb_top.u_dcache.cmd_retire
+tb_top.u_dcache.mem_req_valid
+tb_top.u_dcache.mem_req_ready
+tb_top.u_dcache.mem_resp_valid
+@22
+tb_top.u_dcache.array_raddr[7:0]
+@29
+tb_top.u_dcache.dbg_valid_s1
+[pattern_trace] 1
+[pattern_trace] 0

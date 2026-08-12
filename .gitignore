@@ -1,0 +1,26 @@
+# cocotb / Verilator
+sim_build/
+__pycache__/
+*.fst
+*.vcd
+results.xml
+
+# Vivado
+*.jou
+*.log
+*.str
+.Xil/
+*.dcp
+vivado_*.backup.*
+synth/runs/
+synth/*.cache/
+synth/*.hw/
+synth/*.ip_user_files/
+synth/*.sim/
+
+# generated
+traces/out/
+
+# plan
+cache_axi4_implementation_plan.md
+verilator/
