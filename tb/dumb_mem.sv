@@ -10,7 +10,9 @@ module dumb_mem #(
 
   input  logic                    mem_req_valid,
   output logic                    mem_req_ready,
+  /* verilator lint_off UNUSEDSIGNAL */
   input  logic [ADDR_W-1:0]       mem_req_addr,
+  /* verilator lint_on UNUSEDSIGNAL */
   input  logic                    mem_req_we,
   input  logic [LINE_BYTES*8-1:0] mem_req_wdata,
   input  logic [LINE_BYTES-1:0]   mem_req_be,
@@ -45,8 +47,11 @@ module dumb_mem #(
           cnt          <= CNT_W'(LATENCY);
           pending_we   <= mem_req_we;
           pending_line <= mem_req_addr[OFFSET_W +: $clog2(LINES)];
-          if (mem_req_we)
-            mem[mem_req_addr[OFFSET_W +: $clog2(LINES)]] <= mem_req_wdata;
+          if (mem_req_we) begin
+            for (int b = 0; b < LINE_BYTES; b++)
+              if (mem_req_be[b])
+                mem[mem_req_addr[OFFSET_W +: $clog2(LINES)]][8*b +: 8] <= mem_req_wdata[8*b +: 8];
+          end
         end
       end else if (cnt != 0) begin
         cnt <= cnt - 1'b1;

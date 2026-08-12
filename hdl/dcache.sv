@@ -70,7 +70,9 @@ module dcache #(
   logic s1_valid;
   logic [TAG_W-1:0]        s1_tag;
   logic [INDEX_W-1:0]      s1_index;
+  /* verilator lint_off UNUSEDSIGNAL */
   logic [OFFSET_W-1:0]     s1_offset;
+  /* verilator lint_on UNUSEDSIGNAL */
   logic                    s1_we;
   logic [CPU_DATA_W/8-1:0] s1_be;
   logic [CPU_DATA_W-1:0]   s1_wdata;
@@ -222,8 +224,6 @@ module dcache #(
   assign s0s1_conflict  = cmd_store && (s0_index == s1_index) && (s0_tag == s1_tag);
   assign req_ready      = s1_can_advance && !s0s1_conflict;
 
-    //debug signals
-  logic dbg_valid_s1;
-  assign dbg_valid_s1 = valid_q[s1_index][0];
+  //debug signals go here
 
 endmodule

@@ -1,108 +1,101 @@
 import cocotb
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, ClockCycles
+import config as cfg
+from env import Env
+from cocotb.triggers import Timer
+
+@cocotb.test()
+async def test_probe_mem_handle(dut): 
+    dut._log.info(f"len(mem) = {len(dut.u_mem.mem)}")
+    dut.u_mem.mem[0].value = 0x1234
+    dut.u_mem.mem[1].value = (0xAB << 248) | 0xCD   # top and bottom bytes
+    await Timer(1, unit="ns")
+    v0 = int(dut.u_mem.mem[0].value)
+    v1 = int(dut.u_mem.mem[1].value)
+    dut._log.info(f"mem[0] = 0x{v0:064x}")
+    dut._log.info(f"mem[1] = 0x{v1:064x}")
+    assert v0 == 0x1234, "array handle is not writable"
+    assert v1 == (0xAB << 248) | 0xCD, "wide write truncated"
+
 
 @cocotb.test()
 async def test_reset(dut):
-    cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
+    env = Env(dut)
+    await env.start()
+    await env.drain()
+    assert env.sb.n_resp == 0, "response seen with no requests issued"
+    env.sb.check()
 
-    dut.rst_n.value     = 0
-    dut.req_valid.value = 0
-    dut.req_we.value    = 0
-    dut.req_addr.value  = 0
-    dut.req_wdata.value = 0
-    dut.req_be.value    = 0
-
-    await ClockCycles(dut.clk, 5)
-    dut.rst_n.value = 1
-    await ClockCycles(dut.clk, 5)
-
-    assert dut.req_ready.value == 1, "cache should accept requests after reset"
-
-async def reset_dut(dut): 
-    cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
-    dut.rst_n.value     = 0
-    dut.req_valid.value = 0
-    dut.req_we.value    = 0
-    dut.req_addr.value  = 0
-    dut.req_wdata.value = 0
-    dut.req_be.value    = 0
-    await ClockCycles(dut.clk, 5)
-    dut.rst_n.value = 1
-    await ClockCycles(dut.clk, 2)
-
-
-async def cpu_read(dut, addr):
-    dut.req_valid.value = 1
-    dut.req_addr.value  = addr
-    dut.req_we.value    = 0
-    dut.req_be.value    = 0xF
-
-    await RisingEdge(dut.clk)
-    while dut.req_ready.value != 1:
-        await RisingEdge(dut.clk)
-
-    dut.req_valid.value = 0
-
-    while dut.resp_valid.value != 1:
-        await RisingEdge(dut.clk)
-    return int(dut.resp_rdata.value)
-
-
-async def cpu_write(dut, addr, data):
-    dut.req_valid.value = 1
-    dut.req_addr.value  = addr
-    dut.req_we.value    = 1
-    dut.req_be.value    = 0xF
-    dut.req_wdata.value = data
-
-    await RisingEdge(dut.clk)
-    while dut.req_ready.value != 1:
-        await RisingEdge(dut.clk)
-
-    dut.req_valid.value = 0
 
 @cocotb.test()
 async def test_read_miss_then_hit(dut):
-    await reset_dut(dut)
+    """Cold miss fills the line; the repeat and its line-mates then hit."""
+    env = Env(dut)
+    await env.start()
+    base = 0x1000
+    env.read(base)
+    env.read(base)
+    for w in range(cfg.WORDS_PER_LINE):
+        env.read(base + w * cfg.WORD_BYTES)
+    await env.drain()
+    assert env.sb.n_resp == 2 + cfg.WORDS_PER_LINE
+    env.sb.check()
 
-    # backdoor-load one line into memory
-    dut.u_mem.mem[2].value = 0xDEADBEEF
-
-    d0 = await cpu_read(dut, 0x40)        # miss
-    t0 = cocotb.utils.get_sim_time("ns")
-    d1 = await cpu_read(dut, 0x40)        # hit
-    t1 = cocotb.utils.get_sim_time("ns")
-    assert t1 - t0 < 50, "second access took too long — did it hit?"
-    assert d0 == 0xDEADBEEF, f"miss returned {d0:#x}"
-    assert d1 == d0
 
 @cocotb.test()
 async def test_write_then_read(dut):
-    await reset_dut(dut)
-    dut.u_mem.mem[2].value = 0
-
-    await cpu_read(dut, 0x40)                    # allocate the line
-    await cpu_write(dut, 0x40, 0xCAFEBABE)
-    d = await cpu_read(dut, 0x40)
-    assert d == 0xCAFEBABE, f"got {d:#x}"
+    """Write-through, including a partial byte-enable write."""
+    env = Env(dut)
+    await env.start()
+    a = 0x2000
+    env.write(a, 0xDEADBEEF)
+    env.read(a)
+    env.write(a + 4, 0x0000BEEF, be=0x3)   # low half only
+    env.read(a + 4)
+    env.write(a + 8, 0xAA000000, be=0x8)   # top byte only
+    env.read(a + 8)
+    await env.drain()
+    env.sb.check()
 
 
 @cocotb.test()
 async def test_conflict_evict(dut):
-    await reset_dut(dut)
-    dut.u_mem.mem[2].value    = 0x11111111
-    dut.u_mem.mem[2 + 256].value = 0x22222222   # same index, different tag
-
-    assert await cpu_read(dut, 0x40)   == 0x11111111
-    assert await cpu_read(dut, 0x2040) == 0x22222222
-    assert await cpu_read(dut, 0x40)   == 0x11111111   # refetched after eviction
+    """Two addresses in the same set: direct-mapped, so they thrash."""
+    env = Env(dut)
+    await env.start()
+    a = 0x0400
+    b = a + cfg.SET_STRIDE
+    assert b < cfg.MEM_BYTES
+    for _ in range(4):
+        env.read(a)
+        env.read(b)
+    await env.drain()
+    assert env.sb.n_resp == 8
+    env.sb.check()
 
 
 @cocotb.test()
 async def test_streaming(dut):
-    await reset_dut(dut)
-    for line in range(4):
-        dut.u_mem.mem[line].value = line
-    for word in range(32):                       # 4 lines × 8 words
-        await cpu_read(dut, word * 4)
+    """Sequential reads across several line boundaries, no idle gaps."""
+    env = Env(dut)
+    await env.start()
+    base = 0x3000
+    n = cfg.WORDS_PER_LINE * 4
+    for i in range(n):
+        env.read(base + i * cfg.WORD_BYTES)
+    await env.drain()
+    assert env.sb.n_resp == n
+    env.sb.check()
+
+
+@cocotb.test()
+async def test_write_then_read_same_set(dut):
+    """Store-to-load: read a written address after a conflicting line displaces it."""
+    env = Env(dut)
+    await env.start()
+    a = 0x0800
+    b = a + cfg.SET_STRIDE
+    env.write(a, 0x12345678)
+    env.read(b)          # miss, evicts a's line
+    env.read(a)          # miss, refills from memory — must see 0x12345678
+    await env.drain()
+    env.sb.check()

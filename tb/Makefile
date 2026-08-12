@@ -11,7 +11,10 @@ VERILOG_SOURCES += $(PWD)/tb_top.sv
 TOPLEVEL = tb_top
 COCOTB_TEST_MODULES ?= test_directed
 
-EXTRA_ARGS += --trace --trace-structs --public-flat-rw
-EXTRA_ARGS += -Wall -Wno-UNUSEDPARAM -GWAYS=1
+TRACE ?= 0
+ifeq ($(TRACE),1)
+EXTRA_ARGS += --trace-fst --trace-structs
+endif
+EXTRA_ARGS += --public-flat-rw -Wall -Wno-UNUSEDPARAM -GWAYS=1
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
