@@ -23,4 +23,7 @@ traces/out/
 
 # plan
 cache_axi4_implementation_plan.md
+
+# verilator and smoketest
 verilator/
+smoketest/
