@@ -139,7 +139,7 @@ async def test_many_lines_backpressure(dut):
 
 
 @cocotb.test()
-async def test_back_to_back(dut):
+async def test_repeated_fetches(dut):
     """req_valid held high across consecutive requests."""
     axi_ram = await setup(dut, backpressure_seed=11)
 

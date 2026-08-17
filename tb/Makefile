@@ -8,6 +8,11 @@ VERILOG_SOURCES  = $(PWD)/../hdl/axi_read_master.sv
 VERILOG_SOURCES += $(PWD)/tb_axi_rd.sv
 TOPLEVEL        = tb_axi_rd
 COCOTB_TEST_MODULES ?= test_axi_rd
+else ifeq ($(BENCH),axi_wr)
+VERILOG_SOURCES  = $(PWD)/../hdl/axi_write_master.sv
+VERILOG_SOURCES += $(PWD)/tb_axi_wr.sv
+TOPLEVEL        = tb_axi_wr
+COCOTB_TEST_MODULES ?= test_axi_wr
 else ifeq ($(BENCH),axi_probe)
 VERILOG_SOURCES = $(PWD)/tb_axi_probe.sv
 TOPLEVEL        = tb_axi_probe
