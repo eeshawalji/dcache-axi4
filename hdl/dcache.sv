@@ -133,11 +133,21 @@ module dcache #(
     end
   endgenerate
 
-  logic [WAYS-1:0] valid_q [SETS]; // valid bits go in flops, not BRAM
+  logic [WAYS-1:0] valid_q [SETS];   // valid bits go in flops, not BRAM
+  logic [WAYS-1:0] dirty_q [SETS];   // line differs from memory
 
   always_ff @(posedge clk) begin
-    if (!rst_n) for (int s = 0; s < SETS; s++) valid_q[s] <= '0;
-    else if (cmd_fill) valid_q[wr_index] <= valid_q[wr_index] | way_we;  
+    if (!rst_n) begin
+      for (int s = 0; s < SETS; s++) begin
+        valid_q[s] <= '0;
+        dirty_q[s] <= '0;
+      end
+    end else if (cmd_fill) begin
+      valid_q[wr_index] <= valid_q[wr_index] |  way_we;
+      dirty_q[wr_index] <= dirty_q[wr_index] & ~way_we;  // fresh from memory: clean
+    end else if (cmd_store) begin
+      dirty_q[wr_index] <= dirty_q[wr_index] |  way_we;  // CPU wrote it: dirty
+    end
   end
 
   // ---- tag compare ----
@@ -156,6 +166,27 @@ module dcache #(
     for (int w = 0; w < WAYS; w++)
       hit_line |= s1_rd_line[w] & {(LINE_BYTES*8){way_hit[w]}};  // syntax: equiv to hit_line = (line0 & mask0) | (line1 & mask1) | (line2 & mask2) | (line3 & mask3); (breakdown in notebook)
   end 
+
+  // ---- victim selection ----
+  // Week 5 replaces this with pseudo-LRU. With WAYS=1 there is no choice to make.
+  logic [WAYS-1:0]         victim_sel;
+  logic [TAG_W-1:0]        victim_tag;
+  logic [LINE_BYTES*8-1:0] victim_line;
+  logic                    victim_dirty;
+
+  assign victim_sel = WAYS'(1);   // way 0
+
+  always_comb begin
+    victim_tag   = '0;
+    victim_line  = '0;
+    victim_dirty = 1'b0;
+    for (int w = 0; w < WAYS; w++)
+      if (victim_sel[w]) begin
+        victim_tag   = s1_rd_tag[w];
+        victim_line  = s1_rd_line[w];
+        victim_dirty = valid_q[s1_index][w] && dirty_q[s1_index][w];
+      end
+  end 
   
   // ---- word select ----
   logic [WORD_SEL_W-1:0] s1_word;
@@ -163,11 +194,11 @@ module dcache #(
   assign resp_rdata = hit_line[s1_word*CPU_DATA_W +: CPU_DATA_W];  // read hit, chooses the correct word (4 bytes) out of the line (32 bytes)
 
   // ---- facts ----
-  logic rd_hit, rd_miss, wr_req;
-  assign rd_hit     = (state == S_IDLE) && s1_valid && !s1_we && hit;
-  assign resp_valid = rd_hit;                      
-  assign rd_miss    = (state == S_IDLE) && s1_valid && !s1_we && !hit;
-  assign wr_req     = (state == S_IDLE) && s1_valid &&  s1_we;          // hit or miss: both go to memory                       
+  logic rd_hit, st_hit, miss;
+  assign rd_hit = (state == S_IDLE) && s1_valid && !s1_we && hit;
+  assign st_hit = (state == S_IDLE) && s1_valid &&  s1_we && hit;
+  assign miss   = (state == S_IDLE) && s1_valid && !hit;   // write-allocate: reads and writes take one path
+  assign resp_valid = rd_hit;                     
 
   logic [LINE_BYTES-1:0]   store_be;
   logic [LINE_BYTES*8-1:0] store_line;
@@ -189,33 +220,34 @@ module dcache #(
   always_comb begin
     next_state = state;
     unique case (state)
-      S_IDLE:           if      (rd_miss)         next_state = S_FILL_REQ;
-                        else if (wr_req)          next_state = S_WRITE_THROUGH;
-      S_FILL_REQ:       if      (mem_req_ready)   next_state = S_FILL_WAIT;
-      S_FILL_WAIT:      if      (mem_resp_valid)  next_state = S_REPLAY;
-      S_REPLAY:                                   next_state = S_IDLE;
-      S_WRITE_THROUGH:  if      (mem_req_ready)   next_state = S_IDLE;
-      S_LOOKUP:                                   next_state = S_IDLE;  // unused wk1
-      default:                                    next_state = S_IDLE;
+      S_IDLE:      if (miss)           next_state = victim_dirty ? S_EVICT_REQ : S_FILL_REQ;
+      S_EVICT_REQ: if (mem_req_ready)  next_state = S_FILL_REQ;
+      S_FILL_REQ:  if (mem_req_ready)  next_state = S_FILL_WAIT;
+      S_FILL_WAIT: if (mem_resp_valid) next_state = S_REPLAY;
+      S_REPLAY:                        next_state = S_IDLE;
+      S_LOOKUP:                        next_state = S_IDLE;
+      default:                         next_state = S_IDLE;
     endcase
   end
 
   // 3. output / commands (comb) - the FSM's entire interface to the datapath
-  assign cmd_fill   = (state == S_FILL_WAIT)     && mem_resp_valid; // read miss
-  assign cmd_store  = (state == S_WRITE_THROUGH) && mem_req_ready && hit; // write hit 
-  assign cmd_retire = rd_hit || ((state == S_WRITE_THROUGH) && mem_req_ready);
+  assign cmd_fill   = (state == S_FILL_WAIT) && mem_resp_valid;
+  assign cmd_store  = st_hit;
+  assign cmd_retire = rd_hit || st_hit;
 
-  assign mem_req_valid = (state == S_FILL_REQ) || (state == S_WRITE_THROUGH);
-  assign mem_req_we    = (state == S_WRITE_THROUGH);
-  assign mem_req_addr  = {s1_tag, s1_index, {OFFSET_W{1'b0}}};
-  assign mem_req_wdata = store_line;
-  assign mem_req_be    = (state == S_WRITE_THROUGH) ? store_be : '0;
+  assign mem_req_valid = (state == S_EVICT_REQ) || (state == S_FILL_REQ);
+  assign mem_req_we    = (state == S_EVICT_REQ);
+  assign mem_req_addr  = (state == S_EVICT_REQ)
+                       ? {victim_tag, s1_index, {OFFSET_W{1'b0}}}
+                       : {s1_tag,     s1_index, {OFFSET_W{1'b0}}};
+  assign mem_req_wdata = victim_line;
+  assign mem_req_be    = (state == S_EVICT_REQ) ? '1 : '0;
 
   // ---- array write datapath (driven by commands) ----
   assign wr_index = s1_index;
   assign wr_line  = cmd_fill ? mem_resp_rdata : store_line;
   assign wr_be    = cmd_fill ? '1             : store_be;
-  assign way_we   = cmd_fill ? WAYS'(1)     // fill way 0 (wk1)
+  assign way_we   = cmd_fill ? victim_sel
                   : cmd_store ? way_hit
                   : '0;
 
@@ -258,9 +290,18 @@ module dcache #(
   assign dbg_acc_way   = dbg_hit_way;
 
   // Event pulses, counted rather than matched per-access.
-  logic dbg_ev_fill, dbg_ev_memwr;
+  logic dbg_ev_fill, dbg_ev_evict;
   assign dbg_ev_fill  = cmd_fill;
-  assign dbg_ev_memwr = mem_req_valid && mem_req_ready && mem_req_we;
+  assign dbg_ev_evict = mem_req_valid && mem_req_ready && mem_req_we;
   /* verilator lint_on UNUSEDSIGNAL */
+
+  `ifndef SYNTHESIS
+    logic was_replay;
+    always_ff @(posedge clk) was_replay <= (state == S_REPLAY);
+
+    always_ff @(posedge clk)
+      if (rst_n && was_replay && miss)
+        $error("dcache: miss immediately after fill -- the fill did not take");
+  `endif
 
 endmodule

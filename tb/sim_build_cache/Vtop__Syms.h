@@ -44,6 +44,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop__Syms final : public VerilatedSyms {
     VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk2;
     VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk3;
     VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk4;
+    VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk5;
     VerilatedScope* __Vscopep_tb_top__u_mem;
     VerilatedScope* __Vscopep_tb_top__u_mem__unnamedblk1;
 

@@ -31,6 +31,7 @@ class WhiteboxChecker:
         self.n_acc     = 0
         self.rtl_fills = 0
         self.rtl_memwr = 0
+        self.coverage = None
 
         self._task = cocotb.start_soon(self._run())
 
@@ -47,7 +48,7 @@ class WhiteboxChecker:
 
             if _resolve(d.dbg_ev_fill) == 1:
                 self.rtl_fills += 1
-            if _resolve(d.dbg_ev_memwr) == 1:
+            if _resolve(d.dbg_ev_evict) == 1:
                 self.rtl_memwr += 1
 
             if _resolve(d.dbg_acc_valid) == 1:
@@ -91,6 +92,10 @@ class WhiteboxChecker:
         if self.model.fills != self.rtl_fills:
             self.errors.append(
                 f"fill count: model {self.model.fills}, RTL {self.rtl_fills}")
+        if self.model.writebacks != self.rtl_memwr:
+            self.errors.append(
+                f"writeback count: model {self.model.writebacks}, "
+                f"RTL {self.rtl_memwr}")
 
         if self.errors:
             for e in self.errors[:20]:

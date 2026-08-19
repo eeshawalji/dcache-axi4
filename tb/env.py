@@ -43,7 +43,7 @@ class Env:
         self.req_mon.subscribe(self.sb.on_request)
         self.resp_mon.subscribe(self.sb.on_response)
         self.model = RefCache(cfg.CAPACITY_BYTES, cfg.LINE_BYTES, cfg.WAYS, 
-                        write_policy="through", allocate="no-allocate")
+                        write_policy="back", allocate="allocate")
         self.wb = WhiteboxChecker(d, d.clk, self.model, d._log)
         self.cov = Coverage(self.model)
         self.wb.coverage = self.cov
@@ -61,8 +61,9 @@ class Env:
         for _ in range(timeout):
             await RisingEdge(d.clk)
             if self.driver.idle and not self.sb.expected:
-                # A trailing write is silent, so give the write-through time
-                # to reach memory before anyone inspects it.
+                # A store is silent on the response channel, so wait for any
+                # bus traffic it triggered (fill, or a dirty eviction) to settle
+                # before anyone inspects memory or counts events.
                 await ClockCycles(d.clk, cfg.MEM_LATENCY + 10)
                 return
         raise TimeoutError(

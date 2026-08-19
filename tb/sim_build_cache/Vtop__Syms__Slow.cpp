@@ -11,7 +11,7 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     , TOP{this, namep}
 {
     // Check resources
-    Verilated::stackCheck(736);
+    Verilated::stackCheck(740);
     // Setup sub module instances
     TOP__dcache_pkg.ctor(this, "dcache_pkg");
     // Configure time unit / time precision
@@ -35,6 +35,7 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     __Vscopep_tb_top__u_dcache__unnamedblk2 = new VerilatedScope{this, "tb_top.u_dcache.unnamedblk2", "unnamedblk2", "<null>", -9, VerilatedScope::SCOPE_OTHER};
     __Vscopep_tb_top__u_dcache__unnamedblk3 = new VerilatedScope{this, "tb_top.u_dcache.unnamedblk3", "unnamedblk3", "<null>", -9, VerilatedScope::SCOPE_OTHER};
     __Vscopep_tb_top__u_dcache__unnamedblk4 = new VerilatedScope{this, "tb_top.u_dcache.unnamedblk4", "unnamedblk4", "<null>", -9, VerilatedScope::SCOPE_OTHER};
+    __Vscopep_tb_top__u_dcache__unnamedblk5 = new VerilatedScope{this, "tb_top.u_dcache.unnamedblk5", "unnamedblk5", "<null>", -9, VerilatedScope::SCOPE_OTHER};
     __Vscopep_tb_top__u_mem = new VerilatedScope{this, "tb_top.u_mem", "u_mem", "dumb_mem", -9, VerilatedScope::SCOPE_MODULE};
     __Vscopep_tb_top__u_mem__unnamedblk1 = new VerilatedScope{this, "tb_top.u_mem.unnamedblk1", "unnamedblk1", "<null>", -9, VerilatedScope::SCOPE_OTHER};
     // Set up scope hierarchy
@@ -47,6 +48,7 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     __Vhier.add(__Vscopep_tb_top__u_dcache, __Vscopep_tb_top__u_dcache__unnamedblk2);
     __Vhier.add(__Vscopep_tb_top__u_dcache, __Vscopep_tb_top__u_dcache__unnamedblk3);
     __Vhier.add(__Vscopep_tb_top__u_dcache, __Vscopep_tb_top__u_dcache__unnamedblk4);
+    __Vhier.add(__Vscopep_tb_top__u_dcache, __Vscopep_tb_top__u_dcache__unnamedblk5);
     __Vhier.add(__Vscopep_tb_top__u_dcache__g_way__BRA__0__KET__, __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data);
     __Vhier.add(__Vscopep_tb_top__u_dcache__g_way__BRA__0__KET__, __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_tag);
     __Vhier.add(__Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data, __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data__unnamedblk1);
@@ -114,10 +116,11 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     __Vscopep_tb_top__u_dcache->varInsert("dbg_acc_valid", &(TOP.tb_top__DOT__u_dcache__DOT__dbg_acc_valid), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("dbg_acc_way", &(TOP.tb_top__DOT__u_dcache__DOT__dbg_acc_way), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,0,0);
     __Vscopep_tb_top__u_dcache->varInsert("dbg_acc_we", &(TOP.tb_top__DOT__u_dcache__DOT__dbg_acc_we), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
+    __Vscopep_tb_top__u_dcache->varInsert("dbg_ev_evict", &(TOP.tb_top__DOT__u_dcache__DOT__dbg_ev_evict), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("dbg_ev_fill", &(TOP.tb_top__DOT__u_dcache__DOT__dbg_ev_fill), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
-    __Vscopep_tb_top__u_dcache->varInsert("dbg_ev_memwr", &(TOP.tb_top__DOT__u_dcache__DOT__dbg_ev_memwr), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("dbg_first", &(TOP.tb_top__DOT__u_dcache__DOT__dbg_first), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("dbg_hit_way", &(TOP.tb_top__DOT__u_dcache__DOT__dbg_hit_way), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,0,0);
+    __Vscopep_tb_top__u_dcache->varInsert("dirty_q", &(TOP.tb_top__DOT__u_dcache__DOT__dirty_q), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 1, 1 ,0,255 ,0,0);
     __Vscopep_tb_top__u_dcache->varInsert("hit", &(TOP.tb_top__DOT__u_dcache__DOT__hit), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("hit_line", &(TOP.tb_top__DOT__u_dcache__DOT__hit_line), false, VLVT_WDATA, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,255,0);
     __Vscopep_tb_top__u_dcache->varInsert("mem_req_addr", &(TOP.tb_top__DOT__u_dcache__DOT__mem_req_addr), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,31,0);
@@ -128,9 +131,9 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     __Vscopep_tb_top__u_dcache->varInsert("mem_req_we", &(TOP.tb_top__DOT__u_dcache__DOT__mem_req_we), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("mem_resp_rdata", &(TOP.tb_top__DOT__u_dcache__DOT__mem_resp_rdata), false, VLVT_WDATA, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,255,0);
     __Vscopep_tb_top__u_dcache->varInsert("mem_resp_valid", &(TOP.tb_top__DOT__u_dcache__DOT__mem_resp_valid), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
+    __Vscopep_tb_top__u_dcache->varInsert("miss", &(TOP.tb_top__DOT__u_dcache__DOT__miss), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("next_state", &(TOP.tb_top__DOT__u_dcache__DOT__next_state), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,2,0);
     __Vscopep_tb_top__u_dcache->varInsert("rd_hit", &(TOP.tb_top__DOT__u_dcache__DOT__rd_hit), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
-    __Vscopep_tb_top__u_dcache->varInsert("rd_miss", &(TOP.tb_top__DOT__u_dcache__DOT__rd_miss), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("req_addr", &(TOP.tb_top__DOT__u_dcache__DOT__req_addr), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,31,0);
     __Vscopep_tb_top__u_dcache->varInsert("req_be", &(TOP.tb_top__DOT__u_dcache__DOT__req_be), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,3,0);
     __Vscopep_tb_top__u_dcache->varInsert("req_ready", &(TOP.tb_top__DOT__u_dcache__DOT__req_ready), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
@@ -156,16 +159,21 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     __Vscopep_tb_top__u_dcache->varInsert("s1_wdata", &(TOP.tb_top__DOT__u_dcache__DOT__s1_wdata), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,31,0);
     __Vscopep_tb_top__u_dcache->varInsert("s1_we", &(TOP.tb_top__DOT__u_dcache__DOT__s1_we), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("s1_word", &(TOP.tb_top__DOT__u_dcache__DOT__s1_word), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,2,0);
+    __Vscopep_tb_top__u_dcache->varInsert("st_hit", &(TOP.tb_top__DOT__u_dcache__DOT__st_hit), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("state", &(TOP.tb_top__DOT__u_dcache__DOT__state), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,2,0);
     __Vscopep_tb_top__u_dcache->varInsert("store_be", &(TOP.tb_top__DOT__u_dcache__DOT__store_be), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,31,0);
     __Vscopep_tb_top__u_dcache->varInsert("store_line", &(TOP.tb_top__DOT__u_dcache__DOT__store_line), false, VLVT_WDATA, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,255,0);
     __Vscopep_tb_top__u_dcache->varInsert("valid_q", &(TOP.tb_top__DOT__u_dcache__DOT__valid_q), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 1, 1 ,0,255 ,0,0);
+    __Vscopep_tb_top__u_dcache->varInsert("victim_dirty", &(TOP.tb_top__DOT__u_dcache__DOT__victim_dirty), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
+    __Vscopep_tb_top__u_dcache->varInsert("victim_line", &(TOP.tb_top__DOT__u_dcache__DOT__victim_line), false, VLVT_WDATA, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,255,0);
+    __Vscopep_tb_top__u_dcache->varInsert("victim_sel", &(TOP.tb_top__DOT__u_dcache__DOT__victim_sel), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,0,0);
+    __Vscopep_tb_top__u_dcache->varInsert("victim_tag", &(TOP.tb_top__DOT__u_dcache__DOT__victim_tag), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,18,0);
+    __Vscopep_tb_top__u_dcache->varInsert("was_replay", &(TOP.tb_top__DOT__u_dcache__DOT__was_replay), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 0);
     __Vscopep_tb_top__u_dcache->varInsert("way_hit", &(TOP.tb_top__DOT__u_dcache__DOT__way_hit), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW, 0, 1 ,0,0);
     __Vscopep_tb_top__u_dcache->varInsert("way_we", &(TOP.tb_top__DOT__u_dcache__DOT__way_we), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,0,0);
     __Vscopep_tb_top__u_dcache->varInsert("wr_be", &(TOP.tb_top__DOT__u_dcache__DOT__wr_be), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,31,0);
     __Vscopep_tb_top__u_dcache->varInsert("wr_index", &(TOP.tb_top__DOT__u_dcache__DOT__wr_index), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,7,0);
     __Vscopep_tb_top__u_dcache->varInsert("wr_line", &(TOP.tb_top__DOT__u_dcache__DOT__wr_line), false, VLVT_WDATA, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 1 ,255,0);
-    __Vscopep_tb_top__u_dcache->varInsert("wr_req", &(TOP.tb_top__DOT__u_dcache__DOT__wr_req), false, VLVT_UINT8, VLVD_NODIR|VLVF_PUB_RW|VLVF_CONTINUOUSLY, 0, 0);
     __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data->varInsert("BYTES", const_cast<void*>(static_cast<const void*>(&(TOP.tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__BYTES))), true, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
     __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data->varInsert("DEPTH", const_cast<void*>(static_cast<const void*>(&(TOP.tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__DEPTH))), true, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
     __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data->varInsert("WIDTH", const_cast<void*>(static_cast<const void*>(&(TOP.tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__WIDTH))), true, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
@@ -190,6 +198,7 @@ Vtop__Syms::Vtop__Syms(VerilatedContext* contextp, const char* namep, Vtop* mode
     __Vscopep_tb_top__u_dcache__unnamedblk2->varInsert("w", &(TOP.tb_top__DOT__u_dcache__DOT__unnamedblk2__DOT__w), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
     __Vscopep_tb_top__u_dcache__unnamedblk3->varInsert("w", &(TOP.tb_top__DOT__u_dcache__DOT__unnamedblk3__DOT__w), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
     __Vscopep_tb_top__u_dcache__unnamedblk4->varInsert("w", &(TOP.tb_top__DOT__u_dcache__DOT__unnamedblk4__DOT__w), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
+    __Vscopep_tb_top__u_dcache__unnamedblk5->varInsert("w", &(TOP.tb_top__DOT__u_dcache__DOT__unnamedblk5__DOT__w), false, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
     __Vscopep_tb_top__u_mem->varInsert("ADDR_W", const_cast<void*>(static_cast<const void*>(&(TOP.tb_top__DOT__u_mem__DOT__ADDR_W))), true, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
     __Vscopep_tb_top__u_mem->varInsert("CNT_W", const_cast<void*>(static_cast<const void*>(&(TOP.tb_top__DOT__u_mem__DOT__CNT_W))), true, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
     __Vscopep_tb_top__u_mem->varInsert("LATENCY", const_cast<void*>(static_cast<const void*>(&(TOP.tb_top__DOT__u_mem__DOT__LATENCY))), true, VLVT_UINT32, VLVD_NODIR|VLVF_PUB_RW|VLVF_DPI_CLAY|VLVF_SIGNED, 0, 1 ,31,0);
@@ -226,6 +235,7 @@ Vtop__Syms::~Vtop__Syms() {
     __Vhier.remove(__Vscopep_tb_top__u_dcache, __Vscopep_tb_top__u_dcache__unnamedblk2);
     __Vhier.remove(__Vscopep_tb_top__u_dcache, __Vscopep_tb_top__u_dcache__unnamedblk3);
     __Vhier.remove(__Vscopep_tb_top__u_dcache, __Vscopep_tb_top__u_dcache__unnamedblk4);
+    __Vhier.remove(__Vscopep_tb_top__u_dcache, __Vscopep_tb_top__u_dcache__unnamedblk5);
     __Vhier.remove(__Vscopep_tb_top__u_dcache__g_way__BRA__0__KET__, __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data);
     __Vhier.remove(__Vscopep_tb_top__u_dcache__g_way__BRA__0__KET__, __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_tag);
     __Vhier.remove(__Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data, __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data__unnamedblk1);
@@ -245,6 +255,7 @@ Vtop__Syms::~Vtop__Syms() {
     VL_DO_CLEAR(delete __Vscopep_tb_top__u_dcache__unnamedblk2, __Vscopep_tb_top__u_dcache__unnamedblk2 = nullptr);
     VL_DO_CLEAR(delete __Vscopep_tb_top__u_dcache__unnamedblk3, __Vscopep_tb_top__u_dcache__unnamedblk3 = nullptr);
     VL_DO_CLEAR(delete __Vscopep_tb_top__u_dcache__unnamedblk4, __Vscopep_tb_top__u_dcache__unnamedblk4 = nullptr);
+    VL_DO_CLEAR(delete __Vscopep_tb_top__u_dcache__unnamedblk5, __Vscopep_tb_top__u_dcache__unnamedblk5 = nullptr);
     VL_DO_CLEAR(delete __Vscopep_tb_top__u_mem, __Vscopep_tb_top__u_mem = nullptr);
     VL_DO_CLEAR(delete __Vscopep_tb_top__u_mem__unnamedblk1, __Vscopep_tb_top__u_mem__unnamedblk1 = nullptr);
     // Tear down sub module instances

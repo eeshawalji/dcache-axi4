@@ -45,7 +45,7 @@ async def test_read_miss_then_hit(dut):
 
 @cocotb.test()
 async def test_write_then_read(dut):
-    """Write-through, including a partial byte-enable write."""
+    """Store allocates the line; the readback sees it, including partial writes."""
     env = Env(dut)
     await env.start()
     a = 0x2000
@@ -61,7 +61,7 @@ async def test_write_then_read(dut):
 
 
 @cocotb.test()
-async def test_conflict_evict(dut):
+async def test_conflict_thrash(dut):
     """Two addresses in the same set: direct-mapped, so they thrash."""
     env = Env(dut)
     await env.start()
@@ -105,3 +105,34 @@ async def test_write_then_read_same_set(dut):
     await env.drain()
     env.sb.check()
     env.wb.check()
+
+@cocotb.test()
+async def test_dirty_eviction(dut):
+    """A dirty line must be written back when displaced; a clean one must not."""
+    env = Env(dut)
+    await env.start()
+    a = 0x0C00
+    b = a + cfg.SET_STRIDE
+    env.write(a, 0xCAFEBABE)   # store miss -> allocate, line is now dirty
+    env.read(b)                # miss -> evicts dirty a, one writeback
+    env.read(a)                # miss -> evicts clean b, no writeback
+    await env.drain()
+    env.sb.check()
+    env.wb.check()
+    assert env.wb.rtl_memwr == 1, f"expected 1 writeback, got {env.wb.rtl_memwr}"
+
+@cocotb.test()
+async def test_repeated_stores_one_writeback(dut):
+    """Write-back absorbs repeated stores: many writes, one bus write."""
+    env = Env(dut)
+    await env.start()
+    a = 0x0E00
+    b = a + cfg.SET_STRIDE
+    for i in range(8):
+        env.write(a + (i % cfg.WORDS_PER_LINE) * cfg.WORD_BYTES, 0x1000 + i)
+    env.read(b)              # displaces the dirty line
+    await env.drain()
+    env.sb.check()
+    env.wb.check()
+    assert env.wb.rtl_memwr == 1, \
+        f"8 stores to one line should produce 1 writeback, got {env.wb.rtl_memwr}"

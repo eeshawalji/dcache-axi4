@@ -68,10 +68,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*2:0*/ tb_top__DOT__u_dcache__DOT__next_state;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__way_hit;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__hit;
+        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__victim_sel;
+        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__victim_dirty;
         CData/*2:0*/ tb_top__DOT__u_dcache__DOT__s1_word;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__rd_hit;
-        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__rd_miss;
-        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__wr_req;
+        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__st_hit;
+        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__miss;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__dbg_first;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__dbg_hit_way;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__dbg_acc_valid;
@@ -79,12 +81,13 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__dbg_acc_we;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__dbg_acc_way;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__dbg_ev_fill;
-        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__dbg_ev_memwr;
+        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__dbg_ev_evict;
+        CData/*0:0*/ tb_top__DOT__u_dcache__DOT__was_replay;
+    };
+    struct {
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__clk;
         CData/*7:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__raddr;
         CData/*7:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__waddr;
-    };
-    struct {
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_tag__DOT__clk;
         CData/*7:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_tag__DOT__raddr;
         CData/*0:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_tag__DOT__we;
@@ -99,7 +102,6 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         CData/*3:0*/ tb_top__DOT__u_mem__DOT__cnt;
         CData/*0:0*/ tb_top__DOT__u_mem__DOT__pending_we;
         CData/*0:0*/ __VdfgRegularize_h6e95ff9d_0_0;
-        CData/*0:0*/ __VdfgRegularize_h6e95ff9d_0_1;
         CData/*0:0*/ __VstlFirstIteration;
         CData/*0:0*/ __VstlPhaseResult;
         CData/*0:0*/ __VicoFirstIteration;
@@ -134,6 +136,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         VlWide<8>/*255:0*/ tb_top__DOT__u_dcache__DOT__wr_line;
         IData/*31:0*/ tb_top__DOT__u_dcache__DOT__wr_be;
         VlWide<8>/*255:0*/ tb_top__DOT__u_dcache__DOT__hit_line;
+        IData/*18:0*/ tb_top__DOT__u_dcache__DOT__victim_tag;
+        VlWide<8>/*255:0*/ tb_top__DOT__u_dcache__DOT__victim_line;
         IData/*31:0*/ tb_top__DOT__u_dcache__DOT__store_be;
         VlWide<8>/*255:0*/ tb_top__DOT__u_dcache__DOT__store_line;
         IData/*31:0*/ tb_top__DOT__u_dcache__DOT__dbg_acc_addr;
@@ -141,16 +145,17 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         IData/*31:0*/ tb_top__DOT__u_dcache__DOT__unnamedblk2__DOT__w;
         IData/*31:0*/ tb_top__DOT__u_dcache__DOT__unnamedblk3__DOT__w;
         IData/*31:0*/ tb_top__DOT__u_dcache__DOT__unnamedblk4__DOT__w;
+        IData/*31:0*/ tb_top__DOT__u_dcache__DOT__unnamedblk5__DOT__w;
         VlWide<8>/*255:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__rdata;
         IData/*31:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__wbe;
         VlWide<8>/*255:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__wdata;
+    };
+    struct {
         IData/*31:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__unnamedblk1__DOT__b;
         IData/*18:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_tag__DOT__rdata;
         IData/*18:0*/ tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_tag__DOT__wdata;
         IData/*31:0*/ tb_top__DOT__u_mem__DOT__mem_req_addr;
         VlWide<8>/*255:0*/ tb_top__DOT__u_mem__DOT__mem_req_wdata;
-    };
-    struct {
         IData/*31:0*/ tb_top__DOT__u_mem__DOT__mem_req_be;
         VlWide<8>/*255:0*/ tb_top__DOT__u_mem__DOT__mem_resp_rdata;
         IData/*31:0*/ tb_top__DOT__u_mem__DOT__unnamedblk1__DOT__b;
@@ -158,6 +163,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         VlUnpacked<IData/*18:0*/, 1> tb_top__DOT__u_dcache__DOT__s1_rd_tag;
         VlUnpacked<VlWide<8>/*255:0*/, 1> tb_top__DOT__u_dcache__DOT__s1_rd_line;
         VlUnpacked<CData/*0:0*/, 256> tb_top__DOT__u_dcache__DOT__valid_q;
+        VlUnpacked<CData/*0:0*/, 256> tb_top__DOT__u_dcache__DOT__dirty_q;
         VlUnpacked<VlWide<8>/*255:0*/, 256> tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__mem;
         VlUnpacked<IData/*18:0*/, 256> tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_tag__DOT__mem;
         VlUnpacked<VlWide<8>/*255:0*/, 4096> tb_top__DOT__u_mem__DOT__mem;
@@ -167,6 +173,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final {
         VlUnpacked<QData/*63:0*/, 1> __VnbaTriggered;
     };
     VlNBACommitQueue<VlUnpacked<CData/*0:0*/, 256>, false, CData/*0:0*/, 1> __VdlyCommitQueuetb_top__DOT__u_dcache__DOT__valid_q;
+    VlNBACommitQueue<VlUnpacked<CData/*0:0*/, 256>, false, CData/*0:0*/, 1> __VdlyCommitQueuetb_top__DOT__u_dcache__DOT__dirty_q;
     VlNBACommitQueue<VlUnpacked<VlWide<8>/*255:0*/, 256>, true, VlWide<8>/*255:0*/, 1> __VdlyCommitQueuetb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__mem;
     VlNBACommitQueue<VlUnpacked<VlWide<8>/*255:0*/, 4096>, true, VlWide<8>/*255:0*/, 1> __VdlyCommitQueuetb_top__DOT__u_mem__DOT__mem;
 
