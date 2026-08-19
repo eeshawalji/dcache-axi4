@@ -308,3 +308,202 @@ not optional — the alternative is a green suite that verifies nothing.
 - No protocol checking, because there is no protocol yet
 - Shrinking procedure for failing random seeds is understood but unbuilt; no
   failure has needed it. Would need `gen.burst(n)[start:end]` slicing.
+
+---
+
+## Week 3 — AXI4 interface, write-back policy
+
+Replaced the placeholder memory with a real AXI4 bus, and brought week 4's
+write-back/write-allocate policy forward. Both layers of the week-2 suite pass
+against a slave with randomised backpressure on all five channels, across six
+seeds.
+
+### What I built
+
+`hdl/axi_read_master.sv` — four-state FSM. Takes a line-aligned address on a
+valid/ready request port, issues one INCR burst, accumulates `BEATS` R-channel
+beats into a line register, returns the whole line on a one-cycle response
+pulse. 100 lines.
+
+`hdl/axi_write_master.sv` — five states. Takes an address and a whole line,
+streams it as a burst, waits for `BVALID`. Reports `resp_error` if `BRESP` is
+not OKAY.
+
+`tb/tb_axi_probe.sv` + `tb/test_axi_probe.py` — a module with no logic and an
+all-input port list, used to hand-drive one burst before any RTL existed.
+Throwaway, kept as a protocol regression.
+
+`tb/tb_axi_rd.sv`, `tb/tb_axi_wr.sv` and their tests — each master exercised
+standalone against `AxiRamRead` / `AxiRamWrite` with pause generators, before
+either went near the cache.
+
+`hdl/dcache.sv` — write-back/write-allocate, dirty bits, victim eviction, both
+masters instantiated, `mem_*` ports replaced by a full AXI4 master port group.
+
+`tb/tb_top.sv` — now a pure pass-through. No memory in RTL at all.
+
+### Decided, and why
+
+**Bring write-back forward from week 4.** The plan's step 5 assumes writebacks
+are whole lines, but the cache was still write-through with byte enables, and
+`axi_write_master` hardwires `WSTRB` to all ones because a line writeback always
+touches every byte. The alternatives were a single-beat mode on the write master
+(20 lines that week 4 makes redundant) or carrying `dumb_mem` alongside `AxiRam`
+for the write path only — two memory models in one testbench, for one week.
+Neither is worth it. Writeback and associativity turn out to be orthogonal:
+pseudo-LRU needs associativity, associativity needs nothing, writeback needs
+nothing. Only the writeback half came forward.
+
+**Policy change first, against `dumb_mem`; AXI swap second.** Three commits, one
+variable at a time. A writeback bug and an integration bug arriving together is
+exactly what the plan's incremental structure exists to prevent.
+
+**Masters as separate modules inside `dcache`, not merged into it.** They own
+disjoint signal sets — read master drives AR and RREADY, write master drives AW,
+W and BREADY — so no arbitration is needed and neither module knows the other
+exists. That is AXI's read/write channel independence paying off structurally.
+It also means each was testable standalone, which is where the burst mechanics
+got debugged: an `ARLEN` off-by-one in a 100-line module is a different problem
+from the same bug inside a cache, where a wrong beat looks like a tag comparison
+failure.
+
+**Hand-drive the first burst rather than using `AxiMaster`.** `cocotbext-axi`
+ships a master that would have made step 1 a single call. Using it would have
+meant writing `axi_read_master.sv` in step 3 with no mental picture of what a
+correct waveform looks like. Fifteen minutes of poking `ARVALID` bought the
+ability to recognise a wrong one on sight.
+
+**Serialised eviction: evict fully, including `BVALID`, then fill.** `S_EVICT_REQ`
+→ `S_EVICT_WAIT` → `S_FILL_REQ`. Overlapping them is §0.3 and needs a victim
+buffer; doing it now would mean two masters live at once with no mechanism to
+order them.
+
+**Full-width beats only.** `ARSIZE`/`AWSIZE` always equal the bus width, `WSTRB`
+always all ones. Narrow transfers rotate active byte lanes per beat and are
+genuinely fiddly. Documented as a limitation rather than half-implemented.
+
+**Tie off `ARLOCK`/`ARCACHE`/`ARPROT` and their AW counterparts** rather than
+omitting them. `cocotbext-axi` treats them as optional, but Vivado's IP packager
+matches signal names to infer an AXI interface, and a missing one means
+hand-wiring thirty ports in the block designer in week 6. Three constants that
+synthesise to nothing.
+
+### Broke
+
+**Beat 0 vanished under backpressure.** The hand-driven test called
+`r_collect()` after `ar_send()` returned, so there was a window between the AR
+handshake and the collector's first sample. Without backpressure the first beat
+happened to land inside the observation window and the test passed. With
+backpressure the timing shifted by one cycle and beat 0 handshook while nobody
+was watching — three beats collected, first one missing, and the survivors were
+beats 1–3 with correct data.
+
+Fix: `cocotb.start_soon(r_collect(...))` *before* issuing the request, so the
+collector is live before any beat can exist.
+
+This is the second instance of the same class of bug as week 2's whitebox tap
+misordering. Rule now explicit: **a monitor is a background task started once,
+never a function called on demand.** The week-2 `CpuMonitor` had this right; I
+broke the pattern by writing the collector as a called function and the
+backpressure test caught it.
+
+Worth recording that the *only* reason it was caught is that the plan says turn
+backpressure on from day one. A zero-latency slave hides it completely.
+
+**`WLAST` and the beat counter, caught in design rather than simulation.** The
+read master increments `beat_cnt` unconditionally on every beat. Copy-pasting
+that to the write side would have been wrong, because there `WLAST` is
+combinational from the counter:
+
+```systemverilog
+assign m_axi_wlast = (beat_cnt == LAST_BEAT);
+```
+
+If the counter wrapped 3→0 on the final beat, `WLAST` would drop in the same
+cycle the slave samples it. The counter is frozen at `LAST_BEAT` by a
+`!m_axi_wlast` guard until the next request resets it.
+
+The asymmetry is the direction flip: on the read side nothing downstream depends
+on the counter's value, on the write side the protocol output does.
+`test_neighbours_untouched` exists specifically to catch this — it fills three
+lines' worth of memory with a marker, writes the middle one, and checks the
+neighbours are untouched. A burst one beat too long spills upward; one too short
+leaves the line incomplete. Checking only the target line catches neither.
+
+**No RTL bugs during the AXI swap.** Both layers clean on the first run after
+integration. That is a direct consequence of the masters having been verified
+standalone under backpressure first — every burst-mechanics bug had already been
+found somewhere small.
+
+### Learned
+
+**`VALID` must not depend on `READY`; `READY` may depend on `VALID`.** The
+prohibition is what prevents deadlock, not the permission. If both sides may
+wait, both wait forever. AXI bans the sender-waits-for-receiver direction
+because a sender always knows whether it has data (purely internal state),
+whereas a receiver often cannot know whether it can accept without seeing the
+request — an arbiter routing `READY` to whichever master is granted is exactly
+`READY` depending on `VALID`, and is structurally unavoidable. Ban it and every
+shared bus needs a pipeline register.
+
+Also: it is not really a rule about combinational paths. Make both dependencies
+registered and there is no loop, no `UNOPTFLAT`, clean synthesis — and it still
+hangs forever. The rule is that the sender must commit without knowing anything
+about the receiver's state.
+
+**`ARLEN` and `ARSIZE` encode differently.** `ARLEN` is beats minus one;
+`ARSIZE` is log2 of bytes per beat. Both are 3 in the default config, from two
+unrelated derivations. Never written as literals in the RTL for exactly that
+reason.
+
+**Acceptance is not completion.** The old `S_WRITE_THROUGH` left as soon as
+`mem_req_ready` went high. AXI splits this: the W beats being accepted means the
+data reached the slave's write buffer; `BVALID` means the write actually landed.
+Hence `S_EVICT_WAIT`, which has no read-side counterpart. Under `dumb_mem` the
+distinction was invisible because it latched writes on the accept cycle and then
+held `ready` low while busy, so the fill stalled by accident rather than by
+design.
+
+**Write-allocate came out of `S_REPLAY` for free.** A store miss now takes the
+same path as a read miss: evict if dirty, fill, replay. On replay, `s1_*` still
+holds the original request — `s1_can_advance` was low throughout, so nothing
+retired — and the request is re-evaluated as a store hit, which writes the word
+and sets dirty. No "store after fill" state, no new datapath. Week 1's note that
+"`S_REPLAY` means there is no separate response path for misses" turned out to
+predict this exactly.
+
+**`s0s1_conflict` went from unreachable to load-bearing**, as the week-1 note
+predicted. Under write-through, `cmd_store` only fired in `S_WRITE_THROUGH`
+where `req_ready` was already low. Under write-back a store hit retires in
+`S_IDLE` in a single cycle, which is precisely the cycle a new request would be
+accepted and reading the array.
+
+**Write-back is not unconditionally cheaper.** Under this stimulus it moved
+*more* bytes than write-through: 3,813 line fills + 1,743 32-byte writebacks
+versus 2,590 fills + 3,496 4-byte write-throughs. Write transaction count
+halved, but each write became eight times larger. Random addresses with poor
+locality are the worst case for the policy — the win comes from repeated stores
+to a resident line, which random stimulus rarely produces.
+`test_repeated_stores_one_writeback` demonstrates the mechanism directly:
+8 stores to one line, 1 bus write. Under write-through that is 8.
+
+**Hierarchy is invisible from outside.** `AxiRam` sees ~30 flat top-level
+signals and cannot tell that two separate master modules sit behind them. Port
+lists are the only contract; internal structure is a free choice. Merging the
+two masters tomorrow would be undetectable from the slave side.
+
+### Open for later
+
+- `resp_error` on the write master is untested — `AxiRam` always returns OKAY,
+  so `err_q` has never been non-zero
+- Neither master has been exercised with `req_valid` held high across
+  back-to-back requests; `fetch_line`/`write_line` block on the response, so the
+  `S_RESP` → `S_IDLE` → `S_AW` turnaround is never stressed. Needs a queue-based
+  driver like `CpuDriver` (week 5)
+- Single-cycle store hit is asserted by design but not measured — the testbench
+  has no latency instrumentation. Needs the performance counter block (week 6)
+- `victim_sel` is hardwired to way 0. Correct at `WAYS=1`, silently useless
+  above it (week 5)
+- Overlapped eviction and fill via a victim buffer, §0.3 (week 5)
+- Narrow transfers (`ARSIZE` < bus width) unimplemented and out of scope
+- One outstanding transaction only; `ARID`/`AWID` tied to 0

@@ -16,6 +16,7 @@
 // INCLUDE MODULE CLASSES
 #include "Vtop___024root.h"
 #include "Vtop_dcache_pkg.h"
+#include "Vtop___024unit.h"
 
 // DPI TYPES for DPI Export callbacks (Internal use)
 
@@ -29,6 +30,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop__Syms final : public VerilatedSyms {
 
     // MODULE INSTANCE STATE
     Vtop___024root                 TOP;
+    Vtop___024unit                 TOP____024unit;
     Vtop_dcache_pkg                TOP__dcache_pkg;
 
     // SCOPE NAMES
@@ -40,13 +42,14 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop__Syms final : public VerilatedSyms {
     VerilatedScope* __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data;
     VerilatedScope* __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_data__unnamedblk1;
     VerilatedScope* __Vscopep_tb_top__u_dcache__g_way__BRA__0__KET____u_tag;
+    VerilatedScope* __Vscopep_tb_top__u_dcache__u_rd;
+    VerilatedScope* __Vscopep_tb_top__u_dcache__u_wr;
+    VerilatedScope* __Vscopep_tb_top__u_dcache__u_wr__unnamedblk1;
     VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk1;
     VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk2;
     VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk3;
     VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk4;
     VerilatedScope* __Vscopep_tb_top__u_dcache__unnamedblk5;
-    VerilatedScope* __Vscopep_tb_top__u_mem;
-    VerilatedScope* __Vscopep_tb_top__u_mem__unnamedblk1;
 
     // SCOPE HIERARCHY
     VerilatedHierarchy __Vhier;

@@ -23,15 +23,46 @@ module dcache #(
   output logic [CPU_DATA_W-1:0]   resp_rdata,
 
   // memory interface (week 1; replaced by AXI in week 3)
-  output logic                    mem_req_valid,
-  input  logic                    mem_req_ready,
-  output logic [ADDR_W-1:0]       mem_req_addr,
-  output logic                    mem_req_we,
-  output logic [LINE_BYTES*8-1:0] mem_req_wdata,
-  output logic [LINE_BYTES-1:0]   mem_req_be,
+  // ---- AXI4 master ----
+  output logic [AXI_ID_W-1:0]     m_axi_awid,
+  output logic [ADDR_W-1:0]       m_axi_awaddr,
+  output logic [7:0]              m_axi_awlen,
+  output logic [2:0]              m_axi_awsize,
+  output logic [1:0]              m_axi_awburst,
+  output logic                    m_axi_awlock,
+  output logic [3:0]              m_axi_awcache,
+  output logic [2:0]              m_axi_awprot,
+  output logic                    m_axi_awvalid,
+  input  logic                    m_axi_awready,
 
-  input  logic                    mem_resp_valid,
-  input  logic [LINE_BYTES*8-1:0] mem_resp_rdata
+  output logic [AXI_DATA_W-1:0]   m_axi_wdata,
+  output logic [AXI_DATA_W/8-1:0] m_axi_wstrb,
+  output logic                    m_axi_wlast,
+  output logic                    m_axi_wvalid,
+  input  logic                    m_axi_wready,
+
+  input  logic [AXI_ID_W-1:0]     m_axi_bid,
+  input  logic [1:0]              m_axi_bresp,
+  input  logic                    m_axi_bvalid,
+  output logic                    m_axi_bready,
+
+  output logic [AXI_ID_W-1:0]     m_axi_arid,
+  output logic [ADDR_W-1:0]       m_axi_araddr,
+  output logic [7:0]              m_axi_arlen,
+  output logic [2:0]              m_axi_arsize,
+  output logic [1:0]              m_axi_arburst,
+  output logic                    m_axi_arlock,
+  output logic [3:0]              m_axi_arcache,
+  output logic [2:0]              m_axi_arprot,
+  output logic                    m_axi_arvalid,
+  input  logic                    m_axi_arready,
+
+  input  logic [AXI_ID_W-1:0]     m_axi_rid,
+  input  logic [AXI_DATA_W-1:0]   m_axi_rdata,
+  input  logic [1:0]              m_axi_rresp,
+  input  logic                    m_axi_rlast,
+  input  logic                    m_axi_rvalid,
+  output logic                    m_axi_rready
 );
 
   import dcache_pkg::*;
@@ -87,6 +118,12 @@ module dcache #(
   logic cmd_store;   // write the CPU's bytes into the hitting way
   logic cmd_retire;  // stage 1 is finished; release it
   state_e state, next_state;
+  logic                    rd_req_valid, rd_req_ready, rd_resp_valid;
+  logic [ADDR_W-1:0]       rd_req_addr;
+  logic [LINE_BYTES*8-1:0] rd_resp_line;
+
+  logic                    wr_req_valid, wr_req_ready, wr_resp_valid, wr_resp_error;
+  logic [ADDR_W-1:0]       wr_req_addr;
 
 
   assign s0_accept = req_valid && req_ready;  // conditions: cpu has request to make AND cache is ready to accept request
@@ -220,10 +257,11 @@ module dcache #(
   always_comb begin
     next_state = state;
     unique case (state)
-      S_IDLE:      if (miss)           next_state = victim_dirty ? S_EVICT_REQ : S_FILL_REQ;
-      S_EVICT_REQ: if (mem_req_ready)  next_state = S_FILL_REQ;
-      S_FILL_REQ:  if (mem_req_ready)  next_state = S_FILL_WAIT;
-      S_FILL_WAIT: if (mem_resp_valid) next_state = S_REPLAY;
+      S_IDLE:       if (miss)          next_state = victim_dirty ? S_EVICT_REQ : S_FILL_REQ;
+      S_EVICT_REQ:  if (wr_req_ready)  next_state = S_EVICT_WAIT;
+      S_EVICT_WAIT: if (wr_resp_valid) next_state = S_FILL_REQ;
+      S_FILL_REQ:   if (rd_req_ready)  next_state = S_FILL_WAIT;
+      S_FILL_WAIT:  if (rd_resp_valid) next_state = S_REPLAY;
       S_REPLAY:                        next_state = S_IDLE;
       S_LOOKUP:                        next_state = S_IDLE;
       default:                         next_state = S_IDLE;
@@ -231,22 +269,21 @@ module dcache #(
   end
 
   // 3. output / commands (comb) - the FSM's entire interface to the datapath
-  assign cmd_fill   = (state == S_FILL_WAIT) && mem_resp_valid;
+  assign cmd_fill   = (state == S_FILL_WAIT) && rd_resp_valid;
   assign cmd_store  = st_hit;
   assign cmd_retire = rd_hit || st_hit;
 
-  assign mem_req_valid = (state == S_EVICT_REQ) || (state == S_FILL_REQ);
-  assign mem_req_we    = (state == S_EVICT_REQ);
-  assign mem_req_addr  = (state == S_EVICT_REQ)
-                       ? {victim_tag, s1_index, {OFFSET_W{1'b0}}}
-                       : {s1_tag,     s1_index, {OFFSET_W{1'b0}}};
-  assign mem_req_wdata = victim_line;
-  assign mem_req_be    = (state == S_EVICT_REQ) ? '1 : '0;
+  assign rd_req_valid = (state == S_FILL_REQ);
+  assign rd_req_addr  = {s1_tag, s1_index, {OFFSET_W{1'b0}}};
+
+  assign wr_req_valid = (state == S_EVICT_REQ);
+  assign wr_req_addr  = {victim_tag, s1_index, {OFFSET_W{1'b0}}};
+    
 
   // ---- array write datapath (driven by commands) ----
   assign wr_index = s1_index;
-  assign wr_line  = cmd_fill ? mem_resp_rdata : store_line;
-  assign wr_be    = cmd_fill ? '1             : store_be;
+  assign wr_line = cmd_fill ? rd_resp_line : store_line;
+  assign wr_be    = cmd_fill ? '1          : store_be;
   assign way_we   = cmd_fill ? victim_sel
                   : cmd_store ? way_hit
                   : '0;
@@ -255,6 +292,39 @@ module dcache #(
   assign s1_can_advance = !s1_valid || cmd_retire;
   assign s0s1_conflict  = cmd_store && (s0_index == s1_index) && (s0_tag == s1_tag);
   assign req_ready      = s1_can_advance && !s0s1_conflict;
+
+  // ---- AXI masters ----
+  axi_read_master #(
+    .ADDR_W(ADDR_W), .LINE_BYTES(LINE_BYTES),
+    .AXI_DATA_W(AXI_DATA_W), .AXI_ID_W(AXI_ID_W)
+  ) u_rd (
+    .clk, .rst_n,
+    .req_valid  (rd_req_valid),
+    .req_ready  (rd_req_ready),
+    .req_addr   (rd_req_addr),
+    .resp_valid (rd_resp_valid),
+    .resp_line  (rd_resp_line),
+    .m_axi_arid, .m_axi_araddr, .m_axi_arlen, .m_axi_arsize, .m_axi_arburst,
+    .m_axi_arlock, .m_axi_arcache, .m_axi_arprot, .m_axi_arvalid, .m_axi_arready,
+    .m_axi_rid, .m_axi_rdata, .m_axi_rresp, .m_axi_rlast, .m_axi_rvalid, .m_axi_rready
+  );
+
+  axi_write_master #(
+    .ADDR_W(ADDR_W), .LINE_BYTES(LINE_BYTES),
+    .AXI_DATA_W(AXI_DATA_W), .AXI_ID_W(AXI_ID_W)
+  ) u_wr (
+    .clk, .rst_n,
+    .req_valid  (wr_req_valid),
+    .req_ready  (wr_req_ready),
+    .req_addr   (wr_req_addr),
+    .req_line   (victim_line),
+    .resp_valid (wr_resp_valid),
+    .resp_error (wr_resp_error),
+    .m_axi_awid, .m_axi_awaddr, .m_axi_awlen, .m_axi_awsize, .m_axi_awburst,
+    .m_axi_awlock, .m_axi_awcache, .m_axi_awprot, .m_axi_awvalid, .m_axi_awready,
+    .m_axi_wdata, .m_axi_wstrb, .m_axi_wlast, .m_axi_wvalid, .m_axi_wready,
+    .m_axi_bid, .m_axi_bresp, .m_axi_bvalid, .m_axi_bready
+  );
 
   // ---- verification debug taps ----
   // Not synthesisable intent; observed by cocotb via --public-flat-rw.
@@ -292,7 +362,7 @@ module dcache #(
   // Event pulses, counted rather than matched per-access.
   logic dbg_ev_fill, dbg_ev_evict;
   assign dbg_ev_fill  = cmd_fill;
-  assign dbg_ev_evict = mem_req_valid && mem_req_ready && mem_req_we;
+  assign dbg_ev_evict = wr_resp_valid;
   /* verilator lint_on UNUSEDSIGNAL */
 
   `ifndef SYNTHESIS
@@ -302,6 +372,10 @@ module dcache #(
     always_ff @(posedge clk)
       if (rst_n && was_replay && miss)
         $error("dcache: miss immediately after fill -- the fill did not take");
+
+    always_ff @(posedge clk)
+      if (rst_n && wr_resp_valid && wr_resp_error)
+        $error("dcache: writeback failed, BRESP not OKAY");
   `endif
 
 endmodule

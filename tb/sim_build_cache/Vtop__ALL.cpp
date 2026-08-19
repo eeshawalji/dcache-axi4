@@ -7,4 +7,6 @@
 #include "Vtop___024root__Slow.cpp"
 #include "Vtop___024root__0__Slow.cpp"
 #include "Vtop_dcache_pkg__Slow.cpp"
+#include "Vtop___024unit__Slow.cpp"
+#include "Vtop___024unit__0__Slow.cpp"
 #include "Vtop__Syms__Slow.cpp"

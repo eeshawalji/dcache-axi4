@@ -13,6 +13,7 @@
 
 class Vtop__Syms;
 class Vtop___024root;
+class Vtop___024unit;
 class Vtop_dcache_pkg;
 
 
@@ -38,14 +39,50 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop VL_NOT_FINAL : public VerilatedModel {
     VL_IN8(&req_we,0,0);
     VL_IN8(&req_be,3,0);
     VL_OUT8(&resp_valid,0,0);
+    VL_OUT8(&m_axi_awid,3,0);
+    VL_OUT8(&m_axi_awlen,7,0);
+    VL_OUT8(&m_axi_awsize,2,0);
+    VL_OUT8(&m_axi_awburst,1,0);
+    VL_OUT8(&m_axi_awlock,0,0);
+    VL_OUT8(&m_axi_awcache,3,0);
+    VL_OUT8(&m_axi_awprot,2,0);
+    VL_OUT8(&m_axi_awvalid,0,0);
+    VL_IN8(&m_axi_awready,0,0);
+    VL_OUT8(&m_axi_wstrb,7,0);
+    VL_OUT8(&m_axi_wlast,0,0);
+    VL_OUT8(&m_axi_wvalid,0,0);
+    VL_IN8(&m_axi_wready,0,0);
+    VL_IN8(&m_axi_bid,3,0);
+    VL_IN8(&m_axi_bresp,1,0);
+    VL_IN8(&m_axi_bvalid,0,0);
+    VL_OUT8(&m_axi_bready,0,0);
+    VL_OUT8(&m_axi_arid,3,0);
+    VL_OUT8(&m_axi_arlen,7,0);
+    VL_OUT8(&m_axi_arsize,2,0);
+    VL_OUT8(&m_axi_arburst,1,0);
+    VL_OUT8(&m_axi_arlock,0,0);
+    VL_OUT8(&m_axi_arcache,3,0);
+    VL_OUT8(&m_axi_arprot,2,0);
+    VL_OUT8(&m_axi_arvalid,0,0);
+    VL_IN8(&m_axi_arready,0,0);
+    VL_IN8(&m_axi_rid,3,0);
+    VL_IN8(&m_axi_rresp,1,0);
+    VL_IN8(&m_axi_rlast,0,0);
+    VL_IN8(&m_axi_rvalid,0,0);
+    VL_OUT8(&m_axi_rready,0,0);
     VL_IN(&req_addr,31,0);
     VL_IN(&req_wdata,31,0);
     VL_OUT(&resp_rdata,31,0);
+    VL_OUT(&m_axi_awaddr,31,0);
+    VL_OUT(&m_axi_araddr,31,0);
+    VL_OUT64(&m_axi_wdata,63,0);
+    VL_IN64(&m_axi_rdata,63,0);
 
     // CELLS
     // Public to allow access to /* verilator public */ items.
     // Otherwise the application code can consider these internals.
     Vtop_dcache_pkg* const __PVT__dcache_pkg;
+    Vtop___024unit* const __PVT____024unit;
 
     // Root instance pointer to allow access to model internals,
     // including inlined /* verilator public_flat_* */ items.

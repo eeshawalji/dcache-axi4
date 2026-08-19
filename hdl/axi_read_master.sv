@@ -49,7 +49,11 @@ module axi_read_master #(
   input  var logic [1:0]              m_axi_rresp,
   input  var logic                    m_axi_rlast,
   input  var logic                    m_axi_rvalid,
-  output var logic                    m_axi_rready
+  output var logic                    m_axi_rready,
+
+  output var logic                    m_axi_arlock,
+  output var logic [3:0]              m_axi_arcache,
+  output var logic [2:0]              m_axi_arprot
 );
 
   // ------------------------------------------------------------------
@@ -129,6 +133,9 @@ module axi_read_master #(
   assign m_axi_arlen   = ARLEN_FIXED;
   assign m_axi_arsize  = ARSIZE_FIXED;
   assign m_axi_arburst = BURST_INCR;
+  assign m_axi_arlock  = 1'b0;
+  assign m_axi_arcache = 4'b0011;
+  assign m_axi_arprot  = 3'b000;
 
   // ------------------------------------------------------------------
   // next-state logic

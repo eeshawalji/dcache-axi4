@@ -16,10 +16,46 @@ Vtop::Vtop(VerilatedContext* _vcontextp__, const char* _vcname__)
     , req_we{vlSymsp->TOP.req_we}
     , req_be{vlSymsp->TOP.req_be}
     , resp_valid{vlSymsp->TOP.resp_valid}
+    , m_axi_awid{vlSymsp->TOP.m_axi_awid}
+    , m_axi_awlen{vlSymsp->TOP.m_axi_awlen}
+    , m_axi_awsize{vlSymsp->TOP.m_axi_awsize}
+    , m_axi_awburst{vlSymsp->TOP.m_axi_awburst}
+    , m_axi_awlock{vlSymsp->TOP.m_axi_awlock}
+    , m_axi_awcache{vlSymsp->TOP.m_axi_awcache}
+    , m_axi_awprot{vlSymsp->TOP.m_axi_awprot}
+    , m_axi_awvalid{vlSymsp->TOP.m_axi_awvalid}
+    , m_axi_awready{vlSymsp->TOP.m_axi_awready}
+    , m_axi_wstrb{vlSymsp->TOP.m_axi_wstrb}
+    , m_axi_wlast{vlSymsp->TOP.m_axi_wlast}
+    , m_axi_wvalid{vlSymsp->TOP.m_axi_wvalid}
+    , m_axi_wready{vlSymsp->TOP.m_axi_wready}
+    , m_axi_bid{vlSymsp->TOP.m_axi_bid}
+    , m_axi_bresp{vlSymsp->TOP.m_axi_bresp}
+    , m_axi_bvalid{vlSymsp->TOP.m_axi_bvalid}
+    , m_axi_bready{vlSymsp->TOP.m_axi_bready}
+    , m_axi_arid{vlSymsp->TOP.m_axi_arid}
+    , m_axi_arlen{vlSymsp->TOP.m_axi_arlen}
+    , m_axi_arsize{vlSymsp->TOP.m_axi_arsize}
+    , m_axi_arburst{vlSymsp->TOP.m_axi_arburst}
+    , m_axi_arlock{vlSymsp->TOP.m_axi_arlock}
+    , m_axi_arcache{vlSymsp->TOP.m_axi_arcache}
+    , m_axi_arprot{vlSymsp->TOP.m_axi_arprot}
+    , m_axi_arvalid{vlSymsp->TOP.m_axi_arvalid}
+    , m_axi_arready{vlSymsp->TOP.m_axi_arready}
+    , m_axi_rid{vlSymsp->TOP.m_axi_rid}
+    , m_axi_rresp{vlSymsp->TOP.m_axi_rresp}
+    , m_axi_rlast{vlSymsp->TOP.m_axi_rlast}
+    , m_axi_rvalid{vlSymsp->TOP.m_axi_rvalid}
+    , m_axi_rready{vlSymsp->TOP.m_axi_rready}
     , req_addr{vlSymsp->TOP.req_addr}
     , req_wdata{vlSymsp->TOP.req_wdata}
     , resp_rdata{vlSymsp->TOP.resp_rdata}
+    , m_axi_awaddr{vlSymsp->TOP.m_axi_awaddr}
+    , m_axi_araddr{vlSymsp->TOP.m_axi_araddr}
+    , m_axi_wdata{vlSymsp->TOP.m_axi_wdata}
+    , m_axi_rdata{vlSymsp->TOP.m_axi_rdata}
     , __PVT__dcache_pkg{vlSymsp->TOP.__PVT__dcache_pkg}
+    , __PVT____024unit{vlSymsp->TOP.__PVT____024unit}
     , rootp{&(vlSymsp->TOP)}
 {
     // Register model with the context

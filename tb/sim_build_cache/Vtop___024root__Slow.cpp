@@ -5,12 +5,23 @@
 #include "Vtop__pch.h"
 
 // Parameter definitions for Vtop___024root
+constexpr CData/*7:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__AWLEN_FIXED;
+constexpr CData/*2:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__AWSIZE_FIXED;
+constexpr CData/*1:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__BURST_INCR;
+constexpr CData/*1:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__RESP_OKAY;
+constexpr CData/*1:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__LAST_BEAT;
+constexpr CData/*7:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__ARLEN_FIXED;
+constexpr CData/*2:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__ARSIZE_FIXED;
+constexpr CData/*1:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__BURST_INCR;
+constexpr CData/*1:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__RESP_OKAY;
+constexpr CData/*1:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__LAST_BEAT;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__CAPACITY_BYTES;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__LINE_BYTES;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__WAYS;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__ADDR_W;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__CPU_DATA_W;
-constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__MEM_LATENCY;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__AXI_DATA_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__AXI_ID_W;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__CAPACITY_BYTES;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__LINE_BYTES;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__WAYS;
@@ -31,13 +42,23 @@ constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__g_way__BRA__
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_data__DOT__BYTES;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_tag__DOT__WIDTH;
 constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__g_way__BRA__0__KET____DOT__u_tag__DOT__DEPTH;
-constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_mem__DOT__ADDR_W;
-constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_mem__DOT__LINE_BYTES;
-constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_mem__DOT__LATENCY;
-constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_mem__DOT__LINES;
-constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_mem__DOT__OFFSET_W;
-constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_mem__DOT__LINE_W;
-constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_mem__DOT__CNT_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__ADDR_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__LINE_BYTES;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__AXI_DATA_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__AXI_ID_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__LINE_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__BEATS;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__AXI_BYTES;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_wr__DOT__BEAT_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__ADDR_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__LINE_BYTES;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__AXI_DATA_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__AXI_ID_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__LINE_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__BEATS;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__OFFSET_W;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__AXI_BYTES;
+constexpr IData/*31:0*/ Vtop___024root::tb_top__DOT__u_dcache__DOT__u_rd__DOT__BEAT_W;
 
 
 void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf);

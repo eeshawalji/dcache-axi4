@@ -4,17 +4,12 @@ from env import Env
 from cocotb.triggers import Timer
 
 @cocotb.test()
-async def test_probe_mem_handle(dut): 
-    dut._log.info(f"len(mem) = {len(dut.u_mem.mem)}")
-    dut.u_mem.mem[0].value = 0x1234
-    dut.u_mem.mem[1].value = (0xAB << 248) | 0xCD   # top and bottom bytes
-    await Timer(1, unit="ns")
-    v0 = int(dut.u_mem.mem[0].value)
-    v1 = int(dut.u_mem.mem[1].value)
-    dut._log.info(f"mem[0] = 0x{v0:064x}")
-    dut._log.info(f"mem[1] = 0x{v1:064x}")
-    assert v0 == 0x1234, "array handle is not writable"
-    assert v1 == (0xAB << 248) | 0xCD, "wide write truncated"
+async def test_backdoor_memory(dut):
+    """The AxiRam backdoor is readable and writable."""
+    env = Env(dut)
+    await env.start()
+    env.axi_ram.write(0x40, bytes(range(32)))
+    assert bytes(env.axi_ram.read(0x40, 32)) == bytes(range(32))
 
 
 @cocotb.test()

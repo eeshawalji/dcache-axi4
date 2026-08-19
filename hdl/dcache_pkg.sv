@@ -4,7 +4,8 @@ package dcache_pkg;
   typedef enum logic [2:0] {
     S_IDLE,
     S_LOOKUP,        // still unused
-    S_EVICT_REQ,     // NEW: write the dirty victim out before filling
+    S_EVICT_REQ,     
+    S_EVICT_WAIT,    // NEW: writeback accepted, waiting for BVALID
     S_FILL_REQ,
     S_FILL_WAIT,
     S_REPLAY

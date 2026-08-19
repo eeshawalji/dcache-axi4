@@ -1,6 +1,7 @@
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, ClockCycles
+from cocotbext.axi import AxiBus, AxiRam
 
 import config as cfg
 from driver import CpuDriver
@@ -11,6 +12,7 @@ from transaction import Request
 from ref_model import RefCache
 from whitebox import WhiteboxChecker
 from coverage import Coverage
+from axi_util import random_pause
 
 class Env:
     def __init__(self, dut, image_seed=0):
@@ -30,11 +32,23 @@ class Env:
         d.req_be.value    = 0
 
         d.rst_n.value = 0
+
+        self.axi_ram = AxiRam(
+            AxiBus.from_prefix(d, "m_axi"), d.clk, d.rst_n,
+            reset_active_level=False, size=cfg.RAM_SIZE)
+
+        # Randomised backpressure on all five channels.
+        self.axi_ram.write_if.aw_channel.set_pause_generator(random_pause(0.2, 1))
+        self.axi_ram.write_if.w_channel.set_pause_generator(random_pause(0.2, 2))
+        self.axi_ram.write_if.b_channel.set_pause_generator(random_pause(0.2, 3))
+        self.axi_ram.read_if.ar_channel.set_pause_generator(random_pause(0.2, 4))
+        self.axi_ram.read_if.r_channel.set_pause_generator(random_pause(0.2, 5))
+
         await ClockCycles(d.clk, 5)
         d.rst_n.value = 1
         await RisingEdge(d.clk)
 
-        await preload(d, self.image)
+        preload(self.axi_ram, self.image)
 
         self.sb = Scoreboard(d._log, init_mem=self.image)
         self.driver   = CpuDriver(d, d.clk)
