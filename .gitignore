@@ -1,5 +1,9 @@
 # cocotb / Verilator
 sim_build/
+sim_build_axi_probe/
+sim_build_axi_rd/
+sim_build_axi_wr/
+sim_build_cache/
 __pycache__/
 *.fst
 *.vcd
